@@ -3,12 +3,12 @@ import moment from "moment";
 import {
   ChangeEvent,
   useCallback,
+  useEffect,
   useId,
   useRef,
   useState,
   KeyboardEvent,
   FormEvent,
-  useEffect,
 } from "react";
 
 import { FontAwesomeIcon } from "@web-speed-hackathon-2026/client/src/components/foundation/FontAwesomeIcon";
@@ -35,6 +35,7 @@ export const DirectMessagePage = ({
   onSubmit,
 }: Props) => {
   const formRef = useRef<HTMLFormElement>(null);
+  const scrollBottomRef = useRef<HTMLDivElement>(null);
   const textAreaId = useId();
 
   const peer =
@@ -43,7 +44,6 @@ export const DirectMessagePage = ({
   const [text, setText] = useState("");
   const textAreaRows = Math.min((text || "").split("\n").length, 5);
   const isInvalid = text.trim().length === 0;
-  const scrollHeightRef = useRef(0);
 
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -74,16 +74,8 @@ export const DirectMessagePage = ({
   );
 
   useEffect(() => {
-    const id = setInterval(() => {
-      const height = Number(window.getComputedStyle(document.body).height.replace("px", ""));
-      if (height !== scrollHeightRef.current) {
-        scrollHeightRef.current = height;
-        window.scrollTo(0, height);
-      }
-    }, 1);
-
-    return () => clearInterval(id);
-  }, []);
+    scrollBottomRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
+  }, [conversation.messages.length, isPeerTyping]);
 
   if (conversationError != null) {
     return (
@@ -151,6 +143,7 @@ export const DirectMessagePage = ({
             );
           })}
         </ul>
+        <div ref={scrollBottomRef} />
       </div>
 
       <div className="sticky bottom-12 z-10 lg:bottom-0">
